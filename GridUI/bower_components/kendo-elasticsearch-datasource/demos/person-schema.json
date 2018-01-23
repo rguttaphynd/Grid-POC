@@ -1,0 +1,54 @@
+{
+  "type": "object",
+  "required": ["name", "siblings", "active"],
+  "properties": {
+    "birthDate": {
+      "type": "string",
+      "format": "date-time",
+      "chance": "birthday"
+    },
+    "active": {
+      "type": "boolean"
+    },
+    "title": {
+      "type": "string",
+      "faker": "name.jobTitle"
+    },
+    "name": {
+      "type": "object",
+      "required": ["firstName", "lastName"],
+      "properties": {
+        "firstName": {
+          "type": "string",
+          "faker": "name.firstName"
+        },
+        "lastName": {
+          "type": "string",
+          "faker": "name.lastName"
+        }
+      }
+    },
+    "birthCountry": {
+      "type": "string",
+      "faker": "address.country"
+    },
+    "birthCity": {
+      "type": "string",
+      "faker": "address.city"
+    },
+    "emails": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "faker": "internet.email"
+      }
+    },
+    "siblings": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 10
+    }
+  }
+}

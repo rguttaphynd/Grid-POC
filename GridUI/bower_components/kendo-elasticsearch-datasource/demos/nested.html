@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8'>
+  <title>Kendo Elasticsearch - demos - Nested</title>
+
+  <!--<link rel='stylesheet' href='http://kendo.cdn.telerik.com/2014.1.318/styles/kendo.common.min.css'>-->
+  <link rel='stylesheet' href='../bower_components/kendo-ui/styles/kendo.common.min.css'>
+  <!--<link rel='stylesheet' href='http://kendo.cdn.telerik.com/2014.1.318/styles/kendo.default.min.css'>-->
+  <link rel='stylesheet' href='../bower_components/kendo-ui/styles/kendo.default.min.css'>
+</head>
+
+<body>
+  <h1>Kendo Elasticsearch - demos - Nested</h1>
+
+  <div id='grid'></div>
+
+  <!--<script src='https://code.jquery.com/jquery-2.1.4.min.js'></script>-->
+  <script src='../bower_components/jquery/jquery.min.js'></script>
+  <!--<script src='http://kendo.cdn.telerik.com/2014.1.318/js/kendo.web.min.js'></script>-->
+  <script src='../bower_components/kendo-ui/src/js/kendo.web.js'></script>
+  <!--<script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js'></script>-->
+  <script src='../bower_components/moment/min/moment.min.js'></script>
+  <script src='../dist/kendo-elasticsearch.js'></script>
+
+  <script>
+    $(document).ready(function() {
+      $('#grid').kendoGrid({
+
+        // configure the datasource to be an ElasticSearchDataSource
+        dataSource: new kendo.data.ElasticSearchDataSource({
+          transport: {
+            read: {
+              url: 'http://localhost:9200/kendo-elasticsearch-demo/organization/_search/'
+            }
+          },
+          pageSize: 10,
+
+          schema: {
+            model: {
+              esMappingKey: 'organization',
+              esStringSubFields: {
+                filter: 'lowercase',
+                agg: 'raw'
+              },
+              fields: {
+                companyName: {
+                  type: 'string'
+                },
+                /*accountName: {
+                  type: 'string',
+                  esNestedPath: 'accounts',
+                  esName: 'name'
+                },*//*
+                accountAmount: {
+                  type: 'number',
+                  esNestedPath: 'accounts',
+                  esName: 'amount'
+                },*/
+                addressCountry: {
+                  type: 'string',
+                  esNestedPath: 'addresses',
+                  esName: 'country'
+                },
+                /*addressCity: {
+                  type: 'string',
+                  esNestedPath: 'addresses',
+                  esName: 'city'
+                },
+                addressCommentContent: {
+                  type: 'string',
+                  esNestedPath: 'addresses',
+                  esName: 'comment.content'
+                },*/
+                addressCommentDate: {
+                  type: 'date',
+                  esNestedPath: 'addresses',
+                  esName: 'comment.date'
+                },
+                addressCommentDateYear: {
+                  type: 'date',
+                  esNestedPath: 'addresses',
+                  esName: 'comment.date'
+                },
+                addressCommentDateMonth: {
+                  type: 'date',
+                  esNestedPath: 'addresses',
+                  esName: 'comment.date'
+                },
+                /*telephoneValue: {
+                  type: 'string',
+                  esNestedPath: 'addresses.telephones',
+                  esName: 'value'
+                },
+                telephoneType: {
+                  type: 'string',
+                  esNestedPath: 'addresses.telephones',
+                  esName: 'type'
+                },*/
+                telephoneUsed: {
+                  type: 'number',
+                  esNestedPath: 'addresses.telephones',
+                  esName: 'used'
+                }
+              }
+            }
+          },
+
+          /*group: [{
+            field: "addressCountry",
+            dir: "asc",
+            aggregates: [{
+              field: 'telephoneUsed',
+              aggregate: 'max'
+            }]
+          }],*/
+          /*aggregate: [{
+            field: 'telephoneUsed',
+            aggregate: 'max'
+          }],*/
+          group: [{
+            field: "addressCommentDateYear",
+            dir: "desc",
+            aggregates: [{
+                field: "addressCommentDateYear",
+                aggregate: "date_histogram",
+                interval: "year"
+              }]
+              // see https://www.elastic.co/guide/en/elasticsearch/reference/2.0/search-aggregations-bucket-datehistogram-aggregation.html
+              // if defined the bucket aggregation will be a date_histogram aggregation
+          }, {
+            field: "addressCommentDateMonth",
+            dir: "desc",
+            aggregates: [{
+                field: "addressCommentDateMonth",
+                aggregate: "date_histogram",
+                interval: "month"
+              }]
+            }],
+
+          sort: {
+            field: 'addressCountry',
+            dir: 'asc'
+          }/*,
+          filter: [{
+            field: 'addressCountry',
+            operator: 'eq',
+            value: 'Finland'
+          }]*/
+        }),
+
+        // other grid options besides the datasource
+        sortable: {
+          mode: "multiple",
+          allowUnsort: true
+        },
+        pageable: true,
+        filterable: {
+          extra: true,
+          operators: {
+            string: {
+              search: "Search",
+              eq: "Is equal to",
+              neq: "Is not equal to",
+              startswith: "Starts with",
+              contains: "Contains",
+              doesnotcontain: "Does not contain",
+              endswith: "Ends with"
+            }
+          }
+        },
+        columns: [{
+          field: 'companyName',
+          title: 'Company name'
+        }, {
+          field: 'addressCountry',
+          title: 'Country',
+          //groupHeaderTemplate: "Country: #=value#, Count: #=count#",
+        }/*, {
+          field: 'addressCity',
+          title: 'City'
+        }, {
+          field: 'addressCommentContent',
+          title: 'Comment'
+        }, {
+          field: 'addressCommentDate',
+          title: 'Comment date'
+        }, {
+          field: 'telephoneType',
+          title: 'Phone type'
+        }, {
+          field: 'telephoneValue',
+          title: 'Phone'
+        }, {
+          field: 'accountName',
+          title: 'Account name'
+        }*//*, {
+          field: 'accountAmount',
+          title: 'Account amount',
+          footerTemplate: "Max: #=max#",
+          groupFooterTemplate: "Max: #=max#"
+        }*/, /*{
+          field: 'telephoneUsed',
+          title: 'Tel used',
+          footerTemplate: "Max: #=max#",
+          groupFooterTemplate: "Max: #=max#"
+        }*/]
+      });
+    });
+  </script>
+
+</body>
+
+</html>

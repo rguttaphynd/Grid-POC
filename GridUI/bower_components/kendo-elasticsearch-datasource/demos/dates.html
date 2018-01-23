@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8'>
+  <title>Kendo Elasticsearch - demos - Basic</title>
+
+  <!--<link rel='stylesheet' href='http://kendo.cdn.telerik.com/2014.1.318/styles/kendo.common.min.css'>-->
+  <link rel='stylesheet' href='../bower_components/kendo-ui/styles/kendo.common.min.css'>
+  <!--<link rel='stylesheet' href='http://kendo.cdn.telerik.com/2014.1.318/styles/kendo.default.min.css'>-->
+  <link rel='stylesheet' href='../bower_components/kendo-ui/styles/kendo.default.min.css'>
+</head>
+
+<body>
+  <h1>Kendo Elasticsearch - demos - Dates</h1>
+
+  <div id='grid1'></div>
+  <div id='grid2'></div>
+  <div id='grid3'></div>
+
+  <!--<script src='https://code.jquery.com/jquery-2.1.4.min.js'></script>-->
+  <script src='../bower_components/jquery/jquery.min.js'></script>
+  <!--<script src='http://kendo.cdn.telerik.com/2014.1.318/js/kendo.web.min.js'></script>-->
+  <script src='../bower_components/kendo-ui/src/js/kendo.web.js'></script>
+  <!--<script src='https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.10.6/moment.min.js'></script>-->
+  <script src='../bower_components/moment/min/moment.min.js'></script>
+  <script src='../dist/kendo-elasticsearch.js'></script>
+
+  <script>
+    $(document).ready(function() {
+      var dataSourceOpts = {
+        transport: {
+          read: {
+            url: 'http://localhost:9200/kendo-elasticsearch-demo/person/_search/'
+          }
+        },
+        pageSize: 10,
+
+        schema: {
+          model: {
+            esMappingKey: 'person',
+            fields: {
+              firstName: {
+                type: 'string',
+                esFilterSubField: 'lowercase',
+                esName: 'name.firstName'
+              },
+              lastName: {
+                type: 'string',
+                esFilterSubField: 'lowercase',
+                esName: 'name.lastName'
+              },
+              birthDate: {
+                type: 'date'
+              },
+              birthDateYear: {
+                type: 'date',
+                esName: 'birthDate'
+              },
+              birthDateMonth: {
+                type: 'date',
+                esName: 'birthDate'
+              },
+              birthDateDay: {
+                type: 'date',
+                esName: 'birthDate'
+              },
+              age: {
+                type: 'number',
+                esName: 'birthDate',
+                duration: 'beforeToday'
+              }
+            }
+          }
+        },
+
+        group: [{
+          field: "birthDateYear",
+          dir: "desc",
+          aggregates: [{
+              field: "birthDateYear",
+              aggregate: "date_histogram",
+              interval: "year"
+            }]
+            // see https://www.elastic.co/guide/en/elasticsearch/reference/2.0/search-aggregations-bucket-datehistogram-aggregation.html
+            // if defined the bucket aggregation will be a date_histogram aggregation
+        }, {
+          field: "birthDateMonth",
+          dir: "desc",
+          aggregates: [{
+            field: "birthDateMonth",
+            aggregate: "date_histogram",
+            interval: "month"
+          }]
+        }, {
+          field: "birthDateDay",
+          dir: "desc",
+          aggregates: [{
+            field: "birthDateDay",
+            aggregate: "date_histogram",
+            interval: "day"
+          }]
+        }]
+      };
+
+      // LOOK HERE FOR MISSING AND EXISTS FILTERS
+      // We override the internal filter function from the filter menu widget in order to accept empty values
+      // on the specific 'missing' and 'exists' operators
+      kendo.ui.FilterMenu.prototype.filter = function(expression) {
+        var field = dataSourceOpts.schema.model.fields[this.field];
+        expression.filters.forEach(function(filter) {
+          if (filter.operator === 'exists' || filter.operator === 'missing') {
+            if (field.type === 'date') {
+              filter.value = new Date().toISOString();
+            } else if (field.type === 'string') {
+              filter.value = '-- ' + filter.operator + ' --'
+            }
+          }
+        });
+
+        // The following is the content of the original function
+        expression = this._merge(expression);
+        if (expression.filters.length) {
+          this.dataSource.filter(expression);
+        }
+      }
+
+      var gridOptions = {
+        sortable: true,
+        pageable: true,
+        filterable: {
+          extra: true,
+          operators: {
+            string: {
+              search: "Search",
+              eq: "Is equal to",
+              neq: "Is not equal to",
+              startswith: "Starts with",
+              contains: "Contains",
+              doesnotcontain: "Does not contain",
+              endswith: "Ends with",
+              exists: 'Exists',
+              missing: 'Missing'
+            },
+            date: {
+              eq: "Is equal to",
+              neq: "Is not equal to",
+              gte: "Is after or equal to",
+              gt: "Is after",
+              lte: "Is before or equal to",
+              lt: "Is before",
+              exists: 'Exists',
+              missing: 'Missing'
+            }
+          }
+        },
+        columns: [{
+          field: 'birthDate',
+          format: '{0:D}',
+          title: 'Date of birth'
+        }, {
+          field: 'birthDateYear',
+          hidden: true,
+          groupHeaderTemplate: "#=kendo.toString(value, 'yyyy')# (#=count#)",
+        }, {
+          field: 'birthDateMonth',
+          hidden: true,
+          groupHeaderTemplate: "#=kendo.toString(value, 'MMMM')# (#=count#)",
+        }, {
+          field: 'birthDateDay',
+          hidden: true,
+          groupHeaderTemplate: "#=kendo.toString(value, 'dd')# (#=count#)",
+        }, {
+          field: 'firstName',
+          title: 'First name'
+        }, {
+          field: 'lastName',
+          title: 'Last name'
+        }, {
+          field: 'age',
+          title: 'Age'
+        }]
+      };
+
+      gridOptions.dataSource = new kendo.data.ElasticSearchDataSource(dataSourceOpts);
+      $('#grid1').kendoGrid(gridOptions);
+
+      /*dataSourceOpts.group.aggregates[0].interval = "month";
+      gridOptions.columns[0].groupHeaderTemplate = "Month of birth: #=kendo.toString(value, 'MMMM yyyy')#, Count: #=count#"
+      gridOptions.dataSource = new kendo.data.ElasticSearchDataSource(dataSourceOpts);
+      $('#grid2').kendoGrid(gridOptions);*/
+    });
+  </script>
+
+</body>
+
+</html>

@@ -1,0 +1,103 @@
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "raw_lowercase": {
+          "tokenizer": "keyword",
+          "filter": [
+            "lowercase"
+          ]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "organization": {
+      "dynamic_templates": [{
+        "integers_as_double": {
+          "match_mapping_type": "long",
+          "mapping": {
+            "type": "double"
+          }
+        }
+      }, {
+        "string_fields": {
+          "mapping": {
+            "index": "analyzed",
+            "omit_norms": true,
+            "type": "string",
+            "analyzer": "french",
+            "fields": {
+              "lowercase": {
+                "index": "analyzed",
+                "analyzer": "raw_lowercase",
+                "ignore_above": 256,
+                "type": "string"
+              },
+              "raw": {
+                "index": "not_analyzed",
+                "ignore_above": 256,
+                "type": "string"
+              }
+            }
+          },
+          "match_mapping_type": "string",
+          "match": "*"
+        }
+      }],
+      "properties": {
+        "addresses": {
+          "type": "nested",
+          "include_in_root": true,
+          "properties": {
+            "telephones": {
+              "type": "nested",
+              "include_in_root": true
+            }
+          }
+        },
+        "accounts": {
+          "type": "nested",
+          "include_in_root": true
+        }
+      }
+    },
+    "person": {
+      "_parent": {
+        "type": "organization"
+      },
+      "dynamic_templates": [{
+        "integers_as_double": {
+          "match_mapping_type": "long",
+          "mapping": {
+            "type": "double"
+          }
+        }
+      }, {
+        "string_fields": {
+          "mapping": {
+            "index": "analyzed",
+            "omit_norms": true,
+            "type": "string",
+            "analyzer": "french",
+            "fields": {
+              "lowercase": {
+                "index": "analyzed",
+                "analyzer": "raw_lowercase",
+                "ignore_above": 256,
+                "type": "string"
+              },
+              "raw": {
+                "index": "not_analyzed",
+                "ignore_above": 256,
+                "type": "string"
+              }
+            }
+          },
+          "match_mapping_type": "string",
+          "match": "*"
+        }
+      }]
+    }
+  }
+}

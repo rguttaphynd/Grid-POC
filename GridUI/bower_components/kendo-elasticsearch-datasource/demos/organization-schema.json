@@ -1,0 +1,92 @@
+{
+  "type": "object",
+  "required": ["companyName", "accounts", "addresses"],
+  "properties": {
+    "companyName": {
+      "type": "string",
+      "faker": "company.companyName"
+    },
+    "accounts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "amount"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "faker": "finance.accountName"
+          },
+          "amount": {
+            "type": "number",
+            "faker": "random.number"
+          }
+        }
+      }
+    },
+    "addresses": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 2,
+      "items": {
+        "type": "object",
+        "required": ["country", "city", "zipCode", "streetName", "comment", "telephones"],
+        "properties": {
+          "zipCode": {
+            "type": "string",
+            "faker": "address.zipCode"
+          },
+          "country": {
+            "type": "string",
+            "faker": "address.country"
+          },
+          "city": {
+            "type": "string",
+            "faker": "address.city"
+          },
+          "streetName": {
+            "type": "string",
+            "faker": "address.streetName"
+          },
+          "streetPrefix": {
+            "type": "string",
+            "faker": "address.streetPrefix"
+          },
+          "comment": {
+            "type": "object",
+            "required": ["content", "date"],
+            "properties": {
+              "content": {
+                "type": "string"
+              },
+              "date": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          },
+          "telephones": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["value", "type", "used"],
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "faker": "phone.phoneNumber"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": ["fax", "fix"]
+                },
+                "used": {
+                  "type": "number",
+                  "faker": "random.number"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

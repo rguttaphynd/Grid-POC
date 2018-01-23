@@ -1,0 +1,155 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Grid POC</title>
+    <link href="kendoui.for.jquery.2017.3.1026.trial/styles/kendo.common.min.css" rel="stylesheet" />
+    <link href="kendoui.for.jquery.2017.3.1026.trial/styles/kendo.default.min.css" rel="stylesheet" />
+    <link href="kendoui.for.jquery.2017.3.1026.trial/styles/kendo.default.mobile.min.css" rel="stylesheet" />
+    <script src="bower_components/jQuery/dist/jquery.min.js"></script>
+    <script src="kendoui.for.jquery.2017.3.1026.trial/js/kendo.all.min.js"></script>
+    <!--<script src="bower_components/require.js"></script>-->
+    <script src="bower_components/moment/moment.js"></script>
+    <!--<script src="bower_components/kendo-elasticsearch-datasource/src/kendo-elasticsearch.js"></script>-->
+    <script src="bower_components/elasticsearch/elasticsearch.jquery.js"></script>
+    <script src="bower_components/kendo-elasticsearch-datasource/dist/kendo-elasticsearch.min.js"></script>
+</head>
+<body>
+    <div id="example">
+        <div id="grid"></div>
+        <script>
+            $(document).ready(function () {
+
+                var elasticClient = $.es.Client({
+                    host: 'https://search-dev-npidata-3hwjnhde2i5h3nitz3hpq4lzl4.us-east-1.es.amazonaws.com'
+                });
+
+                elasticClient.search({
+                    index: 'providers',
+                    type: 'provider',
+                    from: 21,
+                    size: 20,
+                    body: {
+                        query: {
+                            bool: {
+                                filter: {
+                                    term: {
+                                        firstName: "ravi"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }).then(function (resp) {
+                    var hits = resp.hits.hits;
+                }, function (err) {
+                    console.trace(err.message);
+                });
+                
+                //$("#grid").kendoGrid({
+                //    dataSource: {
+                //        transport: {
+                //            read: "http://localhost:63473/api/griddata",
+                //            dataType: "json"
+                //        },
+                //        schema: {
+                //            total: function (data) {
+                //                return data.length * 1000;
+                //            }
+                //        },
+                //        pageSize: 20,
+                //        serverPaging: true,
+                //        serverFiltering: true,
+                //        serverSorting: true
+                //    },
+                //    columns: [
+                //        { field: "Npi", title: "Npi" },
+                //        { field: "EntityTypeCode", title: "EntityTypeCode" },
+                //        { field: "OrganizationName", title: "OrganizationName" },
+                //        { field: "NamePrefix", title: "NamePrefix" },
+                //        { field: "FirstName", title: "FirstName" },
+                //        { field: "MiddleName", title: "MiddleName" },
+                //        { field: "LastName", title: "LastName" },
+                //        { field: "NameSuffix", title: "NameSuffix" },
+                //        { field: "CredentialText", title: "CredentialText" },
+                //        { field: "GenderCode", title: "GenderCode" }
+                //    ],
+                //    toolbar: ["excel"],
+                //    sortable: true,
+                //    pageable: true,
+                //    filterable: true,
+                //    scrollable: {
+                //        virtual: false
+                //    },
+                //    columnMenu: true,
+                //    reorderable: true,
+                //    resizable: true,
+                //    excel: {
+                //        fileName: "Kendo UI Grid Export.xlsx",
+                //        proxyURL: "https://demos.telerik.com/kendo-ui/service/export",
+                //        filterable: true
+                //    },
+                //})
+                
+                $("#grid").kendoGrid({
+                    dataSource: new kendo.data.ElasticSearchDataSource({
+                        transport: {
+                            read: {
+                                url: 'https://search-dev-npidata-3hwjnhde2i5h3nitz3hpq4lzl4.us-east-1.es.amazonaws.com/providers/provider/_search'
+                            }
+                        },
+                        pageSize: 20,
+                        schema: {
+                            model: {
+                                // Use this to specify that sub fields of string fields should be used for pattern based filtering and aggregations
+                                // If the subfields are different by field use 'esFilterSubField' and/or 'esAggSubField' on each filed definition
+                                esStringSubFields: {
+                                    filter: 'lowercase',
+                                    agg: 'raw'
+                                },
+                                fields: {
+                                    firstName: {
+                                        type: 'string',
+                                        esName: 'FirstName'
+                                    },
+                                    lastName: {
+                                        type: 'string',
+                                        esName: 'LastName'
+                                    }
+                                }
+                            }
+                        }
+                    }),
+                    columns: [
+                        { field: "Npi", title: "Npi" },
+                        { field: "EntityTypeCode", title: "EntityTypeCode" },
+                        { field: "OrganizationName", title: "OrganizationName" },
+                        { field: "NamePrefix", title: "NamePrefix" },
+                        { field: "FirstName", title: "FirstName" },
+                        { field: "MiddleName", title: "MiddleName" },
+                        { field: "LastName", title: "LastName" },
+                        { field: "NameSuffix", title: "NameSuffix" },
+                        { field: "CredentialText", title: "CredentialText" },
+                        { field: "GenderCode", title: "GenderCode" }
+                    ],
+                    toolbar: ["excel"],
+                    sortable: false,
+                    pageable: false,
+                    filterable: false,
+                    scrollable: {
+                        virtual: false
+                    },
+                    columnMenu: true,
+                    reorderable: true,
+                    resizable: true,
+                    excel: {
+                        fileName: "Kendo UI Grid Export.xlsx",
+                        proxyURL: "https://demos.telerik.com/kendo-ui/service/export",
+                        filterable: true
+                    }
+                });
+            });
+        </script>
+    </div>
+</body>
+</html>
